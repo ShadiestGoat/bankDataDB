@@ -37,7 +37,7 @@ func (s SavableCategory) Validate() error {
 	}
 
 	if len(e) != 0 {
-		return ValidationErr{e}
+		return &ValidationErr{e}
 	}
 
 	return nil
