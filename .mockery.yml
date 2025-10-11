@@ -1,0 +1,10 @@
+dir: '{{.InterfaceDir}}'
+filename: './mock_{{ .SrcPackageName }}/main.go'
+log-level: info
+recursive: false
+template: testify
+pkgname: mock_{{ .SrcPackageName }}
+packages:
+  github.com/shadiestgoat/bankDataDB/db/store:
+    config:
+      include-interface-regex: Store

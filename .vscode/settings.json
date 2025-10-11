@@ -1,0 +1,8 @@
+{
+    "cSpell.words": [
+        "uniseg"
+    ],
+    "yaml.schemas": {
+        "https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json": "file:///home/shady/projects/bankData/test-compose.yml"
+    }
+}

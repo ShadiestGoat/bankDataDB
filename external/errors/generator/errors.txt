@@ -1,0 +1,6 @@
+InternalErr: 500 Internal Error :(
+NoAuthProvided: 401 Authorization Needed
+BadAuth: 401 Not Authorized >:(
+BadInput: 400 Can't read your input
+BadTSV: 400 Bad TSV Data - did you download this from my guy CGD?
+NotFound: 404 Can't find this, yea?
