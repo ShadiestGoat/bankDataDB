@@ -978,6 +978,81 @@ func (_c *MockStore_NewUser_Call) RunAndReturn(run func(ctx context.Context, use
 	return _c
 }
 
+// ResetCategoryData provides a mock function for the type MockStore
+func (_mock *MockStore) ResetCategoryData(ctx context.Context, iD string, name string, color string, icon string) error {
+	ret := _mock.Called(ctx, iD, name, color, icon)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ResetCategoryData")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string) error); ok {
+		r0 = returnFunc(ctx, iD, name, color, icon)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockStore_ResetCategoryData_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ResetCategoryData'
+type MockStore_ResetCategoryData_Call struct {
+	*mock.Call
+}
+
+// ResetCategoryData is a helper method to define mock.On call
+//   - ctx context.Context
+//   - iD string
+//   - name string
+//   - color string
+//   - icon string
+func (_e *MockStore_Expecter) ResetCategoryData(ctx interface{}, iD interface{}, name interface{}, color interface{}, icon interface{}) *MockStore_ResetCategoryData_Call {
+	return &MockStore_ResetCategoryData_Call{Call: _e.mock.On("ResetCategoryData", ctx, iD, name, color, icon)}
+}
+
+func (_c *MockStore_ResetCategoryData_Call) Run(run func(ctx context.Context, iD string, name string, color string, icon string)) *MockStore_ResetCategoryData_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		var arg4 string
+		if args[4] != nil {
+			arg4 = args[4].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+			arg4,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_ResetCategoryData_Call) Return(err error) *MockStore_ResetCategoryData_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockStore_ResetCategoryData_Call) RunAndReturn(run func(ctx context.Context, iD string, name string, color string, icon string) error) *MockStore_ResetCategoryData_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SendBatch provides a mock function for the type MockStore
 func (_mock *MockStore) SendBatch(ctx context.Context, b *pgx.Batch) error {
 	ret := _mock.Called(ctx, b)

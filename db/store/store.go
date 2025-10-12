@@ -20,6 +20,7 @@ type Store interface {
 	DoesTransactionExist(ctx context.Context, authorID string, authedAt time.Time, settledAt time.Time, description string, amount float64) (bool, error)
 	GetTransCount(ctx context.Context, authorID string) (int64, error)
 	GetUserUpdatedAt(ctx context.Context, id string) (time.Time, error)
+	ResetCategoryData(ctx context.Context, iD string, name string, color string, icon string) error
 	SendBatch(ctx context.Context, b *pgx.Batch) error
 	UpdateTransCatsUsingMapping(ctx context.Context, newCategoryID string, authorID string, amtMatcher *float64, txtMatcher *regexp.Regexp) (int, error)
 	UpdateTransNamesUsingMapping(ctx context.Context, newName string, authorID string, amtMatcher *float64, txtMatcher *regexp.Regexp) (int, error)

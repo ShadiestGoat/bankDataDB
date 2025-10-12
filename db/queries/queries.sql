@@ -23,3 +23,6 @@ SELECT EXISTS(
             AND
         id = $2
 );
+
+-- name: ResetCategoryData :exec
+UPDATE categories SET name = $2, color = $3, icon = $4 WHERE id = $1;

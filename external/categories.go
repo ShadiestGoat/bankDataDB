@@ -41,6 +41,7 @@ func routeCategories(r chi.Router, a *internal.API, store store.Store) {
 
 		return &RespCreated{id}, nil
 	})
+
 	r.Route(`/{id}`, func(r chi.Router) {
 		r.Use(makeMiddleware(a, func(a *internal.API, r *http.Request) (*http.Request, error) {
 			exist, err := store.DoesCategoryExist(r.Context(), getUserID(r), chi.URLParam(r, "id"))
@@ -53,6 +54,22 @@ func routeCategories(r chi.Router, a *internal.API, store store.Store) {
 
 			return nil, nil
 		}))
+
+		defHTTPRead(r, `PUT`, `/`, a, func(r *http.Request, b internal.SavableCategory) (any, errors.GenericHTTPError) {
+			err := a.UpdateCategory(r.Context(), chi.URLParam(r, "id"), &b)
+			if err != nil {
+				if err, ok := err.(*internal.ValidationErr); ok {
+					return nil, &errors.OnDemandHTTPError{
+						Status: 400,
+						Message: "Failed to validate category",
+						Details: err.Details,
+					}
+				}
+				return nil, errors.InternalErr
+			}
+
+			return nil, nil
+		})
 
 		defHTTP(r, `DELETE`, `/`, a, func(r *http.Request) (any, errors.GenericHTTPError) {
 			c, err := store.ExtDelCategory(r.Context(), getUserID(r), chi.URLParam(r, "id"))

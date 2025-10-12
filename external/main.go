@@ -96,6 +96,10 @@ func defHTTP(r chi.Router, m string, p string, a *internal.API, h func(r *http.R
 			handleHTTPError(a, w, r.Context(), httpErr)
 			return
 		}
+		if resp == nil {
+			w.WriteHeader(204)
+			return
+		}
 
 		enc, err := json.Marshal(resp)
 		if err != nil {

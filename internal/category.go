@@ -36,6 +36,10 @@ func (s SavableCategory) Validate() error {
 		}
 	}
 
+	if len(s.Name) == 0 {
+		e = append(e, "name: required")
+	}
+
 	if len(e) != 0 {
 		return &ValidationErr{e}
 	}
@@ -49,4 +53,12 @@ func (a *API) CreateCategory(ctx context.Context, c *SavableCategory, authorID s
 	}
 
 	return a.store.CreateCategory(ctx, authorID, c.Name, c.Icon, c.Color)
+}
+
+func (a *API) UpdateCategory(ctx context.Context, id string, c *SavableCategory) error {
+	if err := c.Validate(); err != nil {
+		return err
+	}
+
+	return a.store.ResetCategoryData(ctx, id, c.Name, c.Color, c.Icon)
 }

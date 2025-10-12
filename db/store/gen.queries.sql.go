@@ -73,3 +73,17 @@ func (q *DBStore) GetUserUpdatedAt(ctx context.Context, id string) (time.Time, e
 	err := row.Scan(&updated_at)
 	return updated_at, err
 }
+
+const resetCategoryData = `-- name: ResetCategoryData :exec
+UPDATE categories SET name = $2, color = $3, icon = $4 WHERE id = $1
+`
+
+func (q *DBStore) ResetCategoryData(ctx context.Context, iD string, name string, color string, icon string) error {
+	_, err := q.db.Exec(ctx, resetCategoryData,
+		iD,
+		name,
+		color,
+		icon,
+	)
+	return err
+}
