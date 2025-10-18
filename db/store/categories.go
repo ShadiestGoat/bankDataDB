@@ -10,7 +10,7 @@ func (s DBStore) CreateCategory(ctx context.Context, authorID string, name strin
 	id := snownode.NewID()
 	_, err := s.db.Exec(
 		ctx,
-		`INSERT INTO categories (id, author_id, name, color, icon) VALUES ($1, $2, $3, $4, $5)`,
+		`INSERT INTO categories (id, author_id, name, icon, color) VALUES ($1, $2, $3, $4, $5)`,
 		id, authorID, name, icon, color,
 	)
 	if err != nil {
