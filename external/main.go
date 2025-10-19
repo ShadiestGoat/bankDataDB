@@ -34,7 +34,7 @@ func Router(api *internal.API, store store.Store) chi.Router {
 
 		r.Route(`/transactions`, func(r chi.Router) { mountTransactions(api, r) })
 		r.Route(`/upload`, func(r chi.Router) { mountUpload(api, r) })
-		mountResources(api, r)
+		r.Route(`/mappings`, func(r chi.Router) { routeMappings(r, api, store) })
 		r.Route(`/categories`, func(r chi.Router) { routeCategories(r, api, store) })
 	})
 
@@ -187,4 +187,12 @@ func defHTTPPage(r chi.Router, a *internal.API, allowedCols []string, h func(r *
 			Data:  data,
 		}, err
 	})
+}
+
+type RespCreated struct {
+	ID string `json:"id"`
+}
+
+type RespDeleted struct {
+	DidDelete bool `json:"deleted"`
 }

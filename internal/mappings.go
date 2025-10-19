@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 
 	"github.com/shadiestgoat/bankDataDB/data"
@@ -60,4 +61,48 @@ func (a *API) UpdateAnyMatchedMappings(ctx context.Context, m *data.Mapping, aut
 	a.log(ctx).Infow("Ran update using mappings", "updated_count", amtUpdated)
 
 	return amtUpdated, errors
+}
+
+func (a *API) validateMapping(ctx context.Context, authorID string, inp *data.Mapping) error {
+	e := []string{}
+
+	if inp.Name == "" {
+		e = append(e, "name: required")
+	}
+	if inp.InpText == nil && inp.InpAmt == nil {
+		e = append(
+			e,
+			"inpDescRegex: at least 1 selector must be defined",
+			"inpAmount: at least 1 selector must be defined",
+		)
+	}
+	if inp.ResCategoryID == nil && inp.ResName == nil {
+		e = append(
+			e,
+			"resName: at least 1 result must be defined",
+			"resCategory: at least 1 result must be defined",
+		)
+	}
+	if len(e) != 0 && inp.ResCategoryID != nil {
+		if ok, err := a.store.DoesCategoryExist(ctx, authorID, *inp.ResCategoryID); err == nil && !ok {
+			e = append(e, "resCategory: Does not exist")
+		}
+	}
+
+	if len(e) != 0 {
+		return &ValidationErr{e}
+	}
+
+	return nil
+}
+
+func (a *API) CreateMapping(ctx context.Context, authorID string, m *data.Mapping) (string, error) {
+	if m.ID != "" {
+		return "", fmt.Errorf("id present")
+	}
+	if err := a.validateMapping(ctx, authorID, m); err != nil {
+		return "", err
+	}
+
+	return a.store.NewMapping(ctx, authorID, m)
 }

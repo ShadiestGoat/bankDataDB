@@ -9,14 +9,6 @@ import (
 	"github.com/shadiestgoat/bankDataDB/internal"
 )
 
-type RespCreated struct {
-	ID string `json:"id"`
-}
-
-type RespDeleted struct {
-	DidDelete bool `json:"deleted"`
-}
-
 func routeCategories(r chi.Router, a *internal.API, store store.Store) {
 	defHTTP(r, `GET`, `/`, a, func(r *http.Request) (any, errors.GenericHTTPError) {
 		data, err := store.ExtGetCategories(r.Context(), getUserID(r))

@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/shadiestgoat/bankDataDB/data"
+	"github.com/shadiestgoat/bankDataDB/snownode"
 )
 
 func (s *DBStore) updateBasedOnMapping(ctx context.Context, col string, newVal any, authorID string, amtMatcher *float64, txtMatcher *regexp.Regexp) (int, error) {
@@ -100,4 +101,23 @@ func (s *DBStore) GetMappingsForAuthor(ctx context.Context, authorID string) ([]
 
 		return mapping, nil
 	})
+}
+
+func (s *DBStore) NewMapping(ctx context.Context, authorID string, m *data.Mapping) (string, error) {
+	id := snownode.NewID()
+
+	_, err := s.db.Exec(
+		ctx,
+		`INSERT INTO categories (
+			id, author_id, name, priority,
+			trans_text, trans_amount, res_name, res_category
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+		id, authorID, m.Name, m.Priority,
+		m.InpText.TextNil(), m.InpAmt, m.ResName, m.ResCategoryID,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	return id, nil
 }

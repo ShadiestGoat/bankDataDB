@@ -6,7 +6,7 @@ import (
 	"github.com/shadiestgoat/bankDataDB/snownode"
 )
 
-func (s DBStore) CreateCategory(ctx context.Context, authorID string, name string, icon string, color string) (string, error) {
+func (s DBStore) NewCategory(ctx context.Context, authorID string, name string, icon string, color string) (string, error) {
 	id := snownode.NewID()
 	_, err := s.db.Exec(
 		ctx,

@@ -9,7 +9,7 @@ import (
 type MarshallableRegexp regexp.Regexp
 
 type Mapping struct {
-	ID   string `json:"id"`
+	ID   string `json:"id,omitempty"`
 	Name string `json:"name"`
 
 	InpText *MarshallableRegexp `json:"inputText,omitempty"`
@@ -39,6 +39,15 @@ func (m *MarshallableRegexp) UnmarshalJSON(b []byte) error {
 
 func (m *MarshallableRegexp) MarshalJSON() ([]byte, error) {
 	return json.Marshal((*regexp.Regexp)(m).String())
+}
+
+func (m *MarshallableRegexp) TextNil() *string {
+	if m == nil {
+		return nil
+	}
+
+	t := (*regexp.Regexp)(m).String()
+	return &t
 }
 
 type Transactions struct {

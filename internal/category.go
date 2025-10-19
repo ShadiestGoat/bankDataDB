@@ -3,7 +3,6 @@ package internal
 import (
 	"context"
 	"strconv"
-	"strings"
 
 	"github.com/rivo/uniseg"
 )
@@ -12,14 +11,6 @@ type SavableCategory struct {
 	Color string `json:"color"`
 	Icon  string `json:"icon"`
 	Name  string `json:"name"`
-}
-
-type ValidationErr struct {
-	Details []string
-}
-
-func (v ValidationErr) Error() string {
-	return "Failed to validate: " + strings.Join(v.Details, ", ")
 }
 
 func (s SavableCategory) Validate() error {
@@ -52,7 +43,7 @@ func (a *API) CreateCategory(ctx context.Context, c *SavableCategory, authorID s
 		return "", err
 	}
 
-	return a.store.CreateCategory(ctx, authorID, c.Name, c.Icon, c.Color)
+	return a.store.NewCategory(ctx, authorID, c.Name, c.Icon, c.Color)
 }
 
 func (a *API) UpdateCategory(ctx context.Context, id string, c *SavableCategory) error {

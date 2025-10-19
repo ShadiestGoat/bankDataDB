@@ -27,6 +27,23 @@ func (q *DBStore) DoesCategoryExist(ctx context.Context, authorID string, iD str
 	return exists, err
 }
 
+const doesMappingExist = `-- name: DoesMappingExist :one
+SELECT EXISTS(
+    SELECT 1 FROM mappings
+    WHERE
+        author_id = $1
+            AND
+        id = $2
+)
+`
+
+func (q *DBStore) DoesMappingExist(ctx context.Context, authorID string, iD string) (bool, error) {
+	row := q.db.QueryRow(ctx, doesMappingExist, authorID, iD)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const doesTransactionExist = `-- name: DoesTransactionExist :one
 SELECT EXISTS(
     SELECT 1 FROM transactions

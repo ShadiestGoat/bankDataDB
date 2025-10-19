@@ -26,3 +26,12 @@ SELECT EXISTS(
 
 -- name: ResetCategoryData :exec
 UPDATE categories SET name = $2, color = $3, icon = $4 WHERE id = $1;
+
+-- name: DoesMappingExist :one
+SELECT EXISTS(
+    SELECT 1 FROM mappings
+    WHERE
+        author_id = $1
+            AND
+        id = $2
+);

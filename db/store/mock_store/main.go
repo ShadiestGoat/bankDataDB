@@ -42,90 +42,6 @@ func (_m *MockStore) EXPECT() *MockStore_Expecter {
 	return &MockStore_Expecter{mock: &_m.Mock}
 }
 
-// CreateCategory provides a mock function for the type MockStore
-func (_mock *MockStore) CreateCategory(ctx context.Context, authorID string, name string, icon string, color string) (string, error) {
-	ret := _mock.Called(ctx, authorID, name, icon, color)
-
-	if len(ret) == 0 {
-		panic("no return value specified for CreateCategory")
-	}
-
-	var r0 string
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string) (string, error)); ok {
-		return returnFunc(ctx, authorID, name, icon, color)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string) string); ok {
-		r0 = returnFunc(ctx, authorID, name, icon, color)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, string, string) error); ok {
-		r1 = returnFunc(ctx, authorID, name, icon, color)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockStore_CreateCategory_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateCategory'
-type MockStore_CreateCategory_Call struct {
-	*mock.Call
-}
-
-// CreateCategory is a helper method to define mock.On call
-//   - ctx context.Context
-//   - authorID string
-//   - name string
-//   - icon string
-//   - color string
-func (_e *MockStore_Expecter) CreateCategory(ctx interface{}, authorID interface{}, name interface{}, icon interface{}, color interface{}) *MockStore_CreateCategory_Call {
-	return &MockStore_CreateCategory_Call{Call: _e.mock.On("CreateCategory", ctx, authorID, name, icon, color)}
-}
-
-func (_c *MockStore_CreateCategory_Call) Run(run func(ctx context.Context, authorID string, name string, icon string, color string)) *MockStore_CreateCategory_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
-		}
-		var arg3 string
-		if args[3] != nil {
-			arg3 = args[3].(string)
-		}
-		var arg4 string
-		if args[4] != nil {
-			arg4 = args[4].(string)
-		}
-		run(
-			arg0,
-			arg1,
-			arg2,
-			arg3,
-			arg4,
-		)
-	})
-	return _c
-}
-
-func (_c *MockStore_CreateCategory_Call) Return(s string, err error) *MockStore_CreateCategory_Call {
-	_c.Call.Return(s, err)
-	return _c
-}
-
-func (_c *MockStore_CreateCategory_Call) RunAndReturn(run func(ctx context.Context, authorID string, name string, icon string, color string) (string, error)) *MockStore_CreateCategory_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // DoesCategoryExist provides a mock function for the type MockStore
 func (_mock *MockStore) DoesCategoryExist(ctx context.Context, authorID string, iD string) (bool, error) {
 	ret := _mock.Called(ctx, authorID, iD)
@@ -194,6 +110,78 @@ func (_c *MockStore_DoesCategoryExist_Call) Return(b bool, err error) *MockStore
 }
 
 func (_c *MockStore_DoesCategoryExist_Call) RunAndReturn(run func(ctx context.Context, authorID string, iD string) (bool, error)) *MockStore_DoesCategoryExist_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DoesMappingExist provides a mock function for the type MockStore
+func (_mock *MockStore) DoesMappingExist(ctx context.Context, authorID string, iD string) (bool, error) {
+	ret := _mock.Called(ctx, authorID, iD)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DoesMappingExist")
+	}
+
+	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (bool, error)); ok {
+		return returnFunc(ctx, authorID, iD)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) bool); ok {
+		r0 = returnFunc(ctx, authorID, iD)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = returnFunc(ctx, authorID, iD)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_DoesMappingExist_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DoesMappingExist'
+type MockStore_DoesMappingExist_Call struct {
+	*mock.Call
+}
+
+// DoesMappingExist is a helper method to define mock.On call
+//   - ctx context.Context
+//   - authorID string
+//   - iD string
+func (_e *MockStore_Expecter) DoesMappingExist(ctx interface{}, authorID interface{}, iD interface{}) *MockStore_DoesMappingExist_Call {
+	return &MockStore_DoesMappingExist_Call{Call: _e.mock.On("DoesMappingExist", ctx, authorID, iD)}
+}
+
+func (_c *MockStore_DoesMappingExist_Call) Run(run func(ctx context.Context, authorID string, iD string)) *MockStore_DoesMappingExist_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_DoesMappingExist_Call) Return(b bool, err error) *MockStore_DoesMappingExist_Call {
+	_c.Call.Return(b, err)
+	return _c
+}
+
+func (_c *MockStore_DoesMappingExist_Call) RunAndReturn(run func(ctx context.Context, authorID string, iD string) (bool, error)) *MockStore_DoesMappingExist_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -902,6 +890,162 @@ func (_c *MockStore_InsertTransactions_Call) Return(n int64, err error) *MockSto
 }
 
 func (_c *MockStore_InsertTransactions_Call) RunAndReturn(run func(ctx context.Context, b *store.TransactionBatch) (int64, error)) *MockStore_InsertTransactions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NewCategory provides a mock function for the type MockStore
+func (_mock *MockStore) NewCategory(ctx context.Context, authorID string, name string, icon string, color string) (string, error) {
+	ret := _mock.Called(ctx, authorID, name, icon, color)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NewCategory")
+	}
+
+	var r0 string
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string) (string, error)); ok {
+		return returnFunc(ctx, authorID, name, icon, color)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string, string) string); ok {
+		r0 = returnFunc(ctx, authorID, name, icon, color)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, string, string) error); ok {
+		r1 = returnFunc(ctx, authorID, name, icon, color)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_NewCategory_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NewCategory'
+type MockStore_NewCategory_Call struct {
+	*mock.Call
+}
+
+// NewCategory is a helper method to define mock.On call
+//   - ctx context.Context
+//   - authorID string
+//   - name string
+//   - icon string
+//   - color string
+func (_e *MockStore_Expecter) NewCategory(ctx interface{}, authorID interface{}, name interface{}, icon interface{}, color interface{}) *MockStore_NewCategory_Call {
+	return &MockStore_NewCategory_Call{Call: _e.mock.On("NewCategory", ctx, authorID, name, icon, color)}
+}
+
+func (_c *MockStore_NewCategory_Call) Run(run func(ctx context.Context, authorID string, name string, icon string, color string)) *MockStore_NewCategory_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		var arg4 string
+		if args[4] != nil {
+			arg4 = args[4].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+			arg4,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_NewCategory_Call) Return(s string, err error) *MockStore_NewCategory_Call {
+	_c.Call.Return(s, err)
+	return _c
+}
+
+func (_c *MockStore_NewCategory_Call) RunAndReturn(run func(ctx context.Context, authorID string, name string, icon string, color string) (string, error)) *MockStore_NewCategory_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NewMapping provides a mock function for the type MockStore
+func (_mock *MockStore) NewMapping(ctx context.Context, authorID string, m *data.Mapping) (string, error) {
+	ret := _mock.Called(ctx, authorID, m)
+
+	if len(ret) == 0 {
+		panic("no return value specified for NewMapping")
+	}
+
+	var r0 string
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *data.Mapping) (string, error)); ok {
+		return returnFunc(ctx, authorID, m)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *data.Mapping) string); ok {
+		r0 = returnFunc(ctx, authorID, m)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, *data.Mapping) error); ok {
+		r1 = returnFunc(ctx, authorID, m)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockStore_NewMapping_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NewMapping'
+type MockStore_NewMapping_Call struct {
+	*mock.Call
+}
+
+// NewMapping is a helper method to define mock.On call
+//   - ctx context.Context
+//   - authorID string
+//   - m *data.Mapping
+func (_e *MockStore_Expecter) NewMapping(ctx interface{}, authorID interface{}, m interface{}) *MockStore_NewMapping_Call {
+	return &MockStore_NewMapping_Call{Call: _e.mock.On("NewMapping", ctx, authorID, m)}
+}
+
+func (_c *MockStore_NewMapping_Call) Run(run func(ctx context.Context, authorID string, m *data.Mapping)) *MockStore_NewMapping_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 *data.Mapping
+		if args[2] != nil {
+			arg2 = args[2].(*data.Mapping)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockStore_NewMapping_Call) Return(s string, err error) *MockStore_NewMapping_Call {
+	_c.Call.Return(s, err)
+	return _c
+}
+
+func (_c *MockStore_NewMapping_Call) RunAndReturn(run func(ctx context.Context, authorID string, m *data.Mapping) (string, error)) *MockStore_NewMapping_Call {
 	_c.Call.Return(run)
 	return _c
 }
