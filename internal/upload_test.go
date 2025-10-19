@@ -29,7 +29,7 @@ func findTransactionRowByDesc(rows [][]any, desc string) []any {
 func assertTransByDesc(t *testing.T, rows [][]any, desc string) []any {
 	trans := findTransactionRowByDesc(rows, desc)
 
-	assert.NotNil(t, trans, "Transaction " + desc + " should exist")
+	assert.NotNil(t, trans, "Transaction "+desc+" should exist")
 
 	return trans
 }
@@ -78,8 +78,12 @@ Op. Date 	Value Date 	Description 	Debit 	Credit 	Balance Accounting 	Balance av
 				ResName: utils.Ptr("The VXY Transaction"),
 			},
 			{
-				InpAmt: utils.Ptr(700.0),
-				ResCategoryID: utils.Ptr("catID"),
+				InpAmt:        utils.Ptr(700.0),
+				ResCategoryID: utils.Ptr("catID STU"),
+			},
+			{
+				InpAmt:        utils.Ptr(-1.0),
+				ResCategoryID: utils.Ptr("None"),
 			},
 		}, nil)
 
@@ -116,7 +120,7 @@ Op. Date 	Value Date 	Description 	Debit 	Credit 	Balance Accounting 	Balance av
 
 		assert.Equal(t, 8, resp.NewTransactions)
 		assert.Equal(t, 1, resp.SkippedTransactions)
-		assert.Equal(t, 7, resp.UnmappedTransactions)
+		assert.Equal(t, 5, resp.UnmappedTransactions)
 
 		// already exists - don't enter it again
 		assert.Nil(t, findTransactionRowByDesc(transactionRows, "MNO"))
@@ -136,7 +140,7 @@ Op. Date 	Value Date 	Description 	Debit 	Credit 	Balance Accounting 	Balance av
 		// amount match
 		if trans := assertTransByDesc(t, transactionRows, "STU"); trans != nil {
 			if assert.NotNil(t, trans[7], "STU must have a resolved category") {
-				assert.Equal(t, *trans[7].(*string), "catID")
+				assert.Equal(t, *trans[7].(*string), "catID STU")
 			}
 		}
 	})
