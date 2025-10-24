@@ -108,7 +108,7 @@ func (s *DBStore) NewMapping(ctx context.Context, authorID string, m *data.Mappi
 
 	_, err := s.db.Exec(
 		ctx,
-		`INSERT INTO categories (
+		`INSERT INTO mappings (
 			id, author_id, name, priority,
 			trans_text, trans_amount, res_name, res_category
 		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,

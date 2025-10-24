@@ -33,7 +33,7 @@ func routeMappings(r chi.Router, a *internal.API, store store.Store) {
 			return nil, errors.InternalErr
 		}
 
-		if r.URL.Query().Get("no_retroactive") == "0" {
+		if r.URL.Query().Get("no_retroactive") != "1" {
 			_, err := a.UpdateAnyMatchedMappings(r.Context(), &b, getUserID(r))
 			if err != nil {
 				return nil, errors.InternalErr
