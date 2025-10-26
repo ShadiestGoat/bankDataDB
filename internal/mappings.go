@@ -6,10 +6,23 @@ import (
 	"regexp"
 
 	"github.com/shadiestgoat/bankDataDB/data"
+	"github.com/shadiestgoat/bankDataDB/db/store"
 )
 
+type MappingRes struct {
+	Res string
+	MappingID string
+}
+
+func (m *MappingRes) SafeValue() *string {
+	if m == nil {
+		return nil
+	}
+	return &m.Res
+}
+
 // Get name & category for a matcher
-func (a *API) MapSpecificTransaction(all []*data.Mapping, desc string, amt float64) (name *string, cat *string) {
+func (a *API) MapSpecificTransaction(all []*data.Mapping, desc string, amt float64) (name *MappingRes, cat *MappingRes) {
 	for _, m := range all {
 		if m.InpAmt != nil && *m.InpAmt != amt {
 			continue
@@ -18,8 +31,8 @@ func (a *API) MapSpecificTransaction(all []*data.Mapping, desc string, amt float
 			continue
 		}
 
-		applyMatchResult(&name, m.ResName)
-		applyMatchResult(&cat, m.ResCategoryID)
+		applyMatchResult(&name, m.ResName, m.ID)
+		applyMatchResult(&cat, m.ResCategoryID, m.ID)
 
 		if name != nil && cat != nil {
 			return
@@ -29,36 +42,63 @@ func (a *API) MapSpecificTransaction(all []*data.Mapping, desc string, amt float
 	return
 }
 
-func applyMatchResult(dst **string, src *string) {
+func applyMatchResult(dst **MappingRes, src *string, mappingID string) {
 	if *dst == nil && src != nil {
-		*dst = src
+		*dst = &MappingRes{
+			Res:       *src,
+			MappingID: mappingID,
+		}
 	}
 }
 
-func (a *API) UpdateAnyMatchedMappings(ctx context.Context, m *data.Mapping, authorID string) (int, []error) {
+func remapType(ctx context.Context, s store.Store, m *data.Mapping, newVal *string, authorID string, forName bool) (int, error) {
+	var err error
+	if forName {
+		err = s.TransMapsRmNames(ctx, m.ID)
+	} else {
+		err = s.TransMapsRmCategories(ctx, m.ID)
+	}
+
+	if err != nil || newVal == nil {
+		return 0, err
+	}
+
+	iter, amt, err := s.TransMapsMapExisting(ctx, forName, *newVal, authorID, m.InpAmt, (*regexp.Regexp)(m.InpText))
+	if err != nil {
+		return 0, err
+	}
+	defer iter.SafeClose()
+
+	err = s.TransMapsInsert(ctx, *iter, m.ID, forName)
+	if err != nil {
+		return 0, err
+	}
+
+	return amt, nil
+}
+
+func (a *API) TransRemapForOneMapping(ctx context.Context, m *data.Mapping, remapNames, remapCategories bool, authorID string) (int, []error) {
 	amtUpdated := 0
 	var errors []error
 
-	if m.ResCategoryID != nil {
-		amt, err := a.store.UpdateTransCatsUsingMapping(ctx, *m.ResCategoryID, authorID, m.InpAmt, (*regexp.Regexp)(m.InpText))
-		amtUpdated += amt
-		if err != nil {
-			errors = append(errors, err)
+	a.store.TxFunc(ctx, func(s store.Store) error {
+		if remapCategories {
+			amt, err := remapType(ctx, s, m, m.ResCategoryID, authorID, false)
+			if err != nil {
+				return err
+			}
+			amtUpdated += amt
 		}
-	}
-	if m.ResName != nil {
-		amt, err := a.store.UpdateTransNamesUsingMapping(ctx, *m.ResName, authorID, m.InpAmt, (*regexp.Regexp)(m.InpText))
-		amtUpdated += amt
-		if err != nil {
-			errors = append(errors, err)
+		if remapNames {
+			amt, err := remapType(ctx, s, m, m.ResName, authorID, true)
+			if err != nil {
+				return err
+			}
+			amtUpdated += amt
 		}
-	}
 
-	if len(errors) != 0 {
-		a.log(ctx).Errorw("Failed to update some transactions", "errors", errors)
-	}
-
-	a.log(ctx).Infow("Ran update using mappings", "updated_count", amtUpdated)
+		return nil
+	})
 
 	return amtUpdated, errors
 }
@@ -104,5 +144,5 @@ func (a *API) CreateMapping(ctx context.Context, authorID string, m *data.Mappin
 		return "", err
 	}
 
-	return a.store.NewMapping(ctx, authorID, m)
+	return a.store.MappingInsert(ctx, authorID, m)
 }

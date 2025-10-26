@@ -12,7 +12,7 @@ import (
 
 func routeMappings(r chi.Router, a *internal.API, store store.Store) {
 	defHTTP(r, `GET`, `/`, a, func(r *http.Request) (any, errors.GenericHTTPError) {
-		data, err := store.GetMappingsForAuthor(r.Context(), getUserID(r))
+		data, err := store.MappingGetAll(r.Context(), getUserID(r))
 		if err != nil {
 			return nil, errors.InternalErr
 		}
@@ -34,7 +34,9 @@ func routeMappings(r chi.Router, a *internal.API, store store.Store) {
 		}
 
 		if r.URL.Query().Get("no_retroactive") != "1" {
-			_, err := a.UpdateAnyMatchedMappings(r.Context(), &b, getUserID(r))
+			b.ID = id
+
+			_, err := a.TransRemapForOneMapping(r.Context(), &b, true, true, getUserID(r))
 			if err != nil {
 				return nil, errors.InternalErr
 			}

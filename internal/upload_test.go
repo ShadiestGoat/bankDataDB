@@ -9,6 +9,7 @@ import (
 
 	"github.com/shadiestgoat/bankDataDB/data"
 	"github.com/shadiestgoat/bankDataDB/db/store"
+	"github.com/shadiestgoat/bankDataDB/tutils"
 	"github.com/shadiestgoat/bankDataDB/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -32,6 +33,29 @@ func assertTransByDesc(t *testing.T, rows [][]any, desc string) []any {
 	assert.NotNil(t, trans, "Transaction "+desc+" should exist")
 
 	return trans
+}
+
+func findTransMapByDesc(transRows, transMapsRows [][]any, desc string) []any {
+	trans := findTransactionRowByDesc(transRows, desc)
+	if trans == nil {
+		return nil
+	}
+
+	for _, row := range transMapsRows {
+		if row[0].(string) == trans[0].(string) {
+			return row
+		}
+	}
+
+	return nil
+}
+
+func assertTransMapByDesc(t *testing.T, transRows, transMapsRows [][]any, desc string) []any {
+	row := findTransMapByDesc(transRows, transMapsRows, desc)
+
+	assert.NotNil(t, row, "Mapped Transaction for " + desc + " should exist")
+
+	return row
 }
 
 func date(d string) time.Time {
@@ -66,9 +90,9 @@ Op. Date 	Value Date 	Description 	Debit 	Credit 	Balance Accounting 	Balance av
 06-08-2025	06-08-2025	ZAB 	35.49		16,183.10	---	Diversos 	
  	 	 	 	Balance Accounting 	15,419.44 EUR 	 	 	
 `)
-		api, s := utils.NewMockAPI(t)
+		api, s := tutils.NewMockAPI(t)
 
-		s.EXPECT().GetMappingsForAuthor(mock.Anything, USER_ID).Return([]*data.Mapping{
+		s.EXPECT().MappingGetAll(mock.Anything, USER_ID).Return([]*data.Mapping{
 			{
 				InpText: (*data.MarshallableRegexp)(regexp.MustCompilePOSIX("^PQR$")),
 				ResName: utils.Ptr("The PQR Transaction"),
@@ -106,18 +130,29 @@ Op. Date 	Value Date 	Description 	Debit 	Credit 	Balance Accounting 	Balance av
 		s.EXPECT().InsertCheckpoint(mock.Anything, date("07-08-2025"), 15_473.69)
 		s.EXPECT().InsertCheckpoint(mock.Anything, date("06-08-2025"), 15_478.20)
 
+		tx := tutils.MockStoreTx(t, s)
+
 		// Expect checkpoints to be sent out
-		s.EXPECT().SendBatch(mock.Anything, mock.Anything).Return(nil)
+		tx.EXPECT().SendBatch(mock.Anything, mock.Anything).Return(nil)
 
 		transactionRows := [][]any{}
-		s.EXPECT().InsertTransactions(mock.Anything, mock.Anything).RunAndReturn(func(_ context.Context, v *store.TransactionBatch) (int64, error) {
+		tx.EXPECT().InsertTransactions(mock.Anything, mock.Anything).RunAndReturn(func(_ context.Context, v *store.TransactionBatch) (int64, error) {
 			transactionRows = v.Rows
 			return int64(len(v.Rows)), nil
+		})
+
+		// trans_id, mapping_id, updated_name
+		transMapRows := [][]any{}
+
+		tx.EXPECT().TransMapsInsertBatch(mock.Anything, mock.Anything).RunAndReturn(func(_ context.Context, v *store.TransMapsBatch) error {
+			transMapRows = v.Rows
+			return nil
 		})
 
 		resp, err := api.ParseTSV(t.Context(), []byte(tsv), USER_ID)
 		require.NoError(t, err)
 
+		// Assert all the different transactions correctly being inserted & mapped
 		assert.Equal(t, 8, resp.NewTransactions)
 		assert.Equal(t, 1, resp.SkippedTransactions)
 		assert.Equal(t, 5, resp.UnmappedTransactions)
@@ -130,18 +165,24 @@ Op. Date 	Value Date 	Description 	Debit 	Credit 	Balance Accounting 	Balance av
 			if assert.NotNil(t, trans[6], "PQR must have a resolved name") {
 				assert.Equal(t, *trans[6].(*string), "The PQR Transaction")
 			}
+
+			assertTransMapByDesc(t, transactionRows, transMapRows, "PQR")
 		}
 		// Partial name match
 		if trans := assertTransByDesc(t, transactionRows, "VXY"); trans != nil {
 			if assert.NotNil(t, trans[6], "VXY must have a resolved name") {
 				assert.Equal(t, *trans[6].(*string), "The VXY Transaction")
 			}
+
+			assertTransMapByDesc(t, transactionRows, transMapRows, "VXY")
 		}
 		// amount match
 		if trans := assertTransByDesc(t, transactionRows, "STU"); trans != nil {
 			if assert.NotNil(t, trans[7], "STU must have a resolved category") {
 				assert.Equal(t, *trans[7].(*string), "catID STU")
 			}
+
+			assertTransMapByDesc(t, transactionRows, transMapRows, "STU")
 		}
 	})
 }

@@ -44,7 +44,7 @@ func (a *API) ParseTSV(ctx context.Context, tsv []byte, authorID string) (*Inser
 		return nil, errors.BadTSV
 	}
 
-	mappings, err := a.store.GetMappingsForAuthor(ctx, authorID)
+	mappings, err := a.store.MappingGetAll(ctx, authorID)
 	if err != nil {
 		return nil, err
 	}
@@ -58,6 +58,7 @@ func (a *API) ParseTSV(ctx context.Context, tsv []byte, authorID string) (*Inser
 	var lastRowCheckpointDate time.Time
 	batchCheckpoints := &pgx.Batch{}
 	batchTrans := &store.TransactionBatch{}
+	batchTransMaps := &store.TransMapsBatch{}
 
 	for _, l := range lines[1 : len(lines)-1] {
 		// Op. Date 	Value Date 	Description 	Debit 	Credit 	Balance Accounting 	Balance available 	Categoria (EN)
@@ -99,7 +100,6 @@ func (a *API) ParseTSV(ctx context.Context, tsv []byte, authorID string) (*Inser
 		ctx := log.ContextSet(ctx, a.log(ctx), "desc", desc, "amt", amt, "authed_at", authedAt)
 
 		exist, err := a.store.DoesTransactionExist(ctx, authorID, authedAt, settledAt, desc, amt)
-		fmt.Println(authorID, authedAt, settledAt, desc, amt, exist, err)
 
 		if err != nil {
 			a.log(ctx).Errorf("Can't verify transaction existing: %v", err)
@@ -116,7 +116,14 @@ func (a *API) ParseTSV(ctx context.Context, tsv []byte, authorID string) (*Inser
 			resp.UnmappedTransactions++
 		}
 
-		batchTrans.Insert(authedAt, settledAt, authorID, desc, amt, resolvedName, resolvedCat)
+		tID := batchTrans.Insert(authedAt, settledAt, authorID, desc, amt, resolvedName.SafeValue(), resolvedCat.SafeValue())
+
+		if resolvedCat != nil {
+			batchTransMaps.Insert(tID, resolvedCat.MappingID, false)
+		}
+		if resolvedName != nil {
+			batchTransMaps.Insert(tID, resolvedName.MappingID, false)
+		}
 
 		if lastRowCheckpointDate != settledAt {
 			a.store.InsertCheckpoint(batchCheckpoints, settledAt, amtAfter)
@@ -125,16 +132,25 @@ func (a *API) ParseTSV(ctx context.Context, tsv []byte, authorID string) (*Inser
 	}
 
 	a.log(ctx).Infow("Writing transactions to db", "amount", len(batchTrans.Rows))
-	c, err := a.store.InsertTransactions(ctx, batchTrans)
+	err = a.store.TxFunc(ctx, func(s store.Store) error {
+		c, err := s.InsertTransactions(ctx, batchTrans)
+		if err != nil {
+			return err
+		}
+		resp.NewTransactions = int(c)
+
+		err = s.SendBatch(ctx, batchCheckpoints)
+		if err != nil {
+			// Not a hard stopping err
+			a.log(ctx).Errorw("Couldn't insert checkpoints", "error", err)
+			return err
+		}
+
+		return s.TransMapsInsertBatch(ctx, batchTransMaps)
+	})
+
 	if err != nil {
 		return nil, err
-	}
-	resp.NewTransactions = int(c)
-
-	err = a.store.SendBatch(ctx, batchCheckpoints)
-	if err != nil {
-		// Not a hard stopping err
-		a.log(ctx).Errorw("Couldn't insert checkpoints", "error", err)
 	}
 
 	return resp, nil

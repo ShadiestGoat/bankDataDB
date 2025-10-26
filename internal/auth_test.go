@@ -9,7 +9,7 @@ import (
 	"github.com/shadiestgoat/bankDataDB/db/store"
 	"github.com/shadiestgoat/bankDataDB/external/errors"
 	"github.com/shadiestgoat/bankDataDB/internal"
-	"github.com/shadiestgoat/bankDataDB/utils"
+	"github.com/shadiestgoat/bankDataDB/tutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -24,7 +24,7 @@ func TestLogin(t *testing.T) {
 	t.Run("invalid", func(t *testing.T) {
 
 		t.Run("username", func(t *testing.T) {
-			api, s := utils.NewMockAPI(t)
+			api, s := tutils.NewMockAPI(t)
 			badName := USER_NAME + "123"
 			s.EXPECT().GetUserByName(mock.Anything, badName).Return(nil, pgx.ErrNoRows)
 
@@ -36,7 +36,7 @@ func TestLogin(t *testing.T) {
 		})
 
 		t.Run("password", func(t *testing.T) {
-			api, s := utils.NewMockAPI(t)
+			api, s := tutils.NewMockAPI(t)
 			s.EXPECT().GetUserByName(mock.Anything, USER_NAME).Return(
 				&store.User{Password: "Something thats CLEARLY not hashed"},
 				nil,
@@ -54,7 +54,7 @@ func TestLogin(t *testing.T) {
 		hashed, err := internal.UtilPasswordGen(USER_PASS)
 		require.NoError(t, err)
 
-		api, s := utils.NewMockAPI(t)
+		api, s := tutils.NewMockAPI(t)
 		s.EXPECT().GetUserByName(mock.Anything, USER_NAME).Return(
 			&store.User{Password: string(hashed)},
 			nil,
@@ -75,7 +75,7 @@ func TestLogin(t *testing.T) {
 
 func TestExchangeToken(t *testing.T) {
 	t.Run("happy", func(t *testing.T) {
-		api, s := utils.NewMockAPI(t)
+		api, s := tutils.NewMockAPI(t)
 
 		tok, err := api.NewToken(t.Context(), USER_ID)
 		require.NoError(t, err)
@@ -91,7 +91,7 @@ func TestExchangeToken(t *testing.T) {
 	})
 
 	t.Run("before_updated_at", func(t *testing.T) {
-		api, s := utils.NewMockAPI(t)
+		api, s := tutils.NewMockAPI(t)
 
 		tok, err := api.NewToken(t.Context(), USER_ID)
 		require.NoError(t, err)

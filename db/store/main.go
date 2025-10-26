@@ -19,3 +19,9 @@ type DBStore struct{ db db.DBQuerier }
 func (s *DBStore) SendBatch(ctx context.Context, b *pgx.Batch) error {
 	return s.db.SendBatch(ctx, b).Close()
 }
+
+func (s *DBStore) TxFunc(ctx context.Context, h func (s Store) error) error {
+	return pgx.BeginFunc(ctx, s.db, func(tx pgx.Tx) error {
+		return h(&DBStore{tx})
+	})
+}

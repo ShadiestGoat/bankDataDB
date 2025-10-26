@@ -49,3 +49,9 @@ CREATE TABLE IF NOT EXISTS mappings (
 
 CREATE INDEX IF NOT EXISTS idx_mappings_text ON mappings (trans_text);
 CREATE INDEX IF NOT EXISTS idx_mappings_amount ON mappings (trans_amount);
+
+CREATE TABLE IF NOT EXISTS mapped_transactions (
+    trans_id TEXT NOT NULL REFERENCES transactions(id),
+    mapping_id TEXT NOT NULL REFERENCES mappings(id),
+    updated_name BOOLEAN NOT NULL
+)

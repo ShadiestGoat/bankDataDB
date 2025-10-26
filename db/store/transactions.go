@@ -19,9 +19,11 @@ type TransactionBatch struct {
 	Rows [][]any
 }
 
-func (t *TransactionBatch) Insert(authedAt, settledAt time.Time, authorID string, desc string, amt float64, resolvedName *string, resolvedCatID *string) {
+func (t *TransactionBatch) Insert(authedAt, settledAt time.Time, authorID string, desc string, amt float64, resolvedName *string, resolvedCatID *string) string {
+	id := snownode.NewID()
+
 	t.Rows = append(t.Rows, []any{
-		snownode.NewID(),
+		id,
 		authorID,
 		authedAt,
 		settledAt,
@@ -30,6 +32,8 @@ func (t *TransactionBatch) Insert(authedAt, settledAt time.Time, authorID string
 		resolvedName,
 		resolvedCatID,
 	})
+
+	return id
 }
 
 func (s *DBStore) InsertTransactions(ctx context.Context, b *TransactionBatch) (int64, error) {
