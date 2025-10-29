@@ -64,12 +64,12 @@ func routeCategories(r chi.Router, a *internal.API, store store.Store) {
 		})
 
 		defHTTP(r, `DELETE`, `/`, a, func(r *http.Request) (any, errors.GenericHTTPError) {
-			c, err := store.ExtDelCategory(r.Context(), getUserID(r), chi.URLParam(r, "id"))
+			_, err := store.ExtDelCategory(r.Context(), getUserID(r), chi.URLParam(r, "id"))
 			if err != nil {
 				return nil, errors.InternalErr
 			}
 
-			return &RespDeleted{c == 1}, nil
+			return nil, nil
 		})
 	})
 }
