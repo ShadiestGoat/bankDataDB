@@ -1,6 +1,7 @@
 package internal_test
 
 import (
+	"bytes"
 	"context"
 	"regexp"
 	"strings"
@@ -149,7 +150,7 @@ Op. Date 	Value Date 	Description 	Debit 	Credit 	Balance Accounting 	Balance av
 			return nil
 		})
 
-		resp, err := api.ParseTSV(t.Context(), []byte(tsv), USER_ID)
+		resp, err := api.ParseTSV(t.Context(), bytes.NewBufferString(tsv), USER_ID)
 		require.NoError(t, err)
 
 		// Assert all the different transactions correctly being inserted & mapped

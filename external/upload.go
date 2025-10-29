@@ -1,7 +1,6 @@
 package external
 
 import (
-	"io"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -11,12 +10,9 @@ import (
 
 func mountUpload(api *internal.API, r chi.Router) {
 	defHTTP(r, `POST`, `/`, api, func(r *http.Request) (any, errors.GenericHTTPError) {
-		b, err := io.ReadAll(r.Body)
-		if err != nil {
-			return nil, errors.BadInput
-		}
+		defer r.Body.Close()
 
-		resp, err := api.ParseTSV(r.Context(), b, getUserID(r))
+		resp, err := api.ParseTSV(r.Context(), r.Body, getUserID(r))
 		if err != nil {
 			if err, ok := err.(errors.GenericHTTPError); ok {
 				return nil, err

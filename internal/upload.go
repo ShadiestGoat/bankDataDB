@@ -1,8 +1,11 @@
 package internal
 
 import (
+	"bufio"
 	"context"
+	nerr "errors"
 	"fmt"
+	"io"
 	"strconv"
 	"strings"
 	"time"
@@ -33,14 +36,35 @@ type InsertResp struct {
 	UnmappedTransactions int `json:"unmappedTransactions"`
 }
 
-func (a *API) ParseTSV(ctx context.Context, tsv []byte, authorID string) (*InsertResp, error) {
-	sec := strings.Split(string(tsv), "\n\n")
-	if len(sec) != 3 {
-		return nil, errors.BadTSV
-	}
+func readTillSection(r io.Reader) bool {
+	section := 0
 
-	lines := strings.Split(sec[2], "\n")
-	if len(lines) < 2 {
+	b := [3]byte{}
+	exp := [3]byte{'\n', '\r', '\n'}
+
+	for {
+		n, err := r.Read(b[2:])
+		if nerr.Is(err, io.EOF) || n != 1 {
+			return false
+		} else if err != nil {
+			panic(err)
+		}
+
+		if b == exp {
+			section++
+			if section == 2 {
+				return true
+			}
+		}
+
+		b[0] = b[1]
+		b[1] = b[2]
+	}
+}
+
+func (a *API) ParseTSV(ctx context.Context, tsv io.Reader, authorID string) (*InsertResp, error) {
+	if !readTillSection(tsv) {
+		a.log(ctx).Warnf("Meow :(")
 		return nil, errors.BadTSV
 	}
 
@@ -59,8 +83,17 @@ func (a *API) ParseTSV(ctx context.Context, tsv []byte, authorID string) (*Inser
 	batchCheckpoints := &pgx.Batch{}
 	batchTrans := &store.TransactionBatch{}
 	batchTransMaps := &store.TransMapsBatch{}
+	sc := bufio.NewScanner(tsv)
 
-	for _, l := range lines[1 : len(lines)-1] {
+	for sc.Scan() {
+		l := sc.Text()
+		if l == "" || strings.HasPrefix(l, "\t") || strings.HasPrefix(l, " ") {
+			break
+		}
+		if l[len(l) - 1] == '\r' {
+			l = l[:len(l) - 1]
+		}
+
 		// Op. Date 	Value Date 	Description 	Debit 	Credit 	Balance Accounting 	Balance available 	Categoria (EN)
 		cols := strings.Split(l, "\t")
 		if len(cols) < 8 {
