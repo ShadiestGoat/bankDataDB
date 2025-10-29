@@ -57,7 +57,7 @@ func routeMappings(r chi.Router, a *internal.API, store store.Store) {
 			if err != nil {
 				return nil, err
 			}
-			if m != nil {
+			if m == nil {
 				return nil, errors.NotFound
 			}
 

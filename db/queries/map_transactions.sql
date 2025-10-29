@@ -3,15 +3,39 @@ WITH deleted AS (
     DELETE FROM mapped_transactions
     WHERE mapping_id = $1
     RETURNING trans_id, updated_name
-), names AS (
-    UPDATE transactions
+), grouped AS (
+    SELECT
+        trans_id,
+        BOOL_OR(updated_name IS TRUE) AS up_name,
+        BOOL_OR(updated_name IS FALSE) AS up_cat
+    FROM deleted
+    GROUP BY trans_id
+) UPDATE transactions
+SET
+    resolved_category = CASE WHEN up_cat IS TRUE THEN NULL ELSE resolved_category END,
+    resolved_name = CASE WHEN up_name IS TRUE THEN NULL ELSE resolved_name END
+FROM grouped
+WHERE id = grouped.trans_id;
+
+-- name: TransMapsCleanNames :exec
+WITH deleted AS (
+    DELETE FROM mapped_transactions
+    WHERE mapping_id = $1 AND updated_name IS TRUE
+    RETURNING trans_id
+) UPDATE transactions
     SET resolved_name = NULL
     FROM deleted
-    WHERE id = deleted.trans_id AND updated_name IS TRUE
+    WHERE id = deleted.trans_id;
+
+-- name: TransMapsCleanCategories :exec
+WITH deleted AS (
+    DELETE FROM mapped_transactions
+    WHERE mapping_id = $1 AND updated_name IS FALSE
+    RETURNING trans_id
 ) UPDATE transactions
-SET resolved_category = NULL
-FROM deleted
-WHERE id = deleted.trans_id AND updated_name IS FALSE;
+    SET resolved_category = NULL
+    FROM deleted
+    WHERE id = deleted.trans_id;
 
 -- name: TransMapsOrphanAll :exec
 DELETE FROM mapped_transactions WHERE mapping_id = $1;

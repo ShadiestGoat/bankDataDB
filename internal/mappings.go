@@ -141,7 +141,42 @@ func cmpPtr[T comparable](a, b *T) bool {
 	if (a == nil) != (b == nil) {
 		return false
 	}
+	if a == nil {
+		return true
+	}
+
 	return *a == *b
+}
+
+func remapNameOrCat(ctx context.Context, s store.Store, name bool, authorID string, oldM, newM *data.Mapping) error {
+	var (
+		oldV, newV *string
+	)
+	if name {
+		oldV, newV = oldM.ResName, newM.ResName
+	} else {
+		oldV, newV = oldM.ResCategoryID, newM.ResCategoryID
+	}
+
+	var err error
+	if oldV == nil {
+		// if the old value is nil, we do not have matched results for it. So, we just gotta re-match em
+		_, err = s.TransMapsMapExisting(ctx, name, authorID, newM)
+		return err
+	} else if newV == nil {
+		// If the new value is nil, we just gotta get rid o the matched stuff
+		if name {
+			return s.TransMapsCleanNames(ctx, oldM.ID)
+		} else {
+			return s.TransMapsCleanCategories(ctx, oldM.ID)
+		}
+	}
+
+	if name {
+		return s.TransMapsUpdateLinkedNames(ctx, oldM.ID, newV)
+	} else {
+		return s.TransMapsUpdateLinkedCategories(ctx, oldM.ID, newV)
+	}
 }
 
 func (a *API) MappingUpdate(ctx context.Context, authorID string, oldMapping, newMapping *data.Mapping, retroactive bool) (error) {
@@ -171,8 +206,8 @@ func (a *API) MappingUpdate(ctx context.Context, authorID string, oldMapping, ne
 		matchersChanged := !cmpPtr(oldMapping.InpAmt, newMapping.InpAmt) ||
 						   !cmpPtr(oldMapping.InpText.TextNil(), newMapping.InpText.TextNil()) ||
 						   oldMapping.Priority != newMapping.Priority
-		remapNames := cmpPtr(oldMapping.ResName, newMapping.ResName)
-		remapCats := cmpPtr(oldMapping.ResCategoryID, newMapping.ResCategoryID)
+		remapNames := !cmpPtr(oldMapping.ResName, newMapping.ResName)
+		remapCats := !cmpPtr(oldMapping.ResCategoryID, newMapping.ResCategoryID)
 
 		if !retroactive {
 			if matchersChanged || (remapCats && remapNames) {
@@ -185,6 +220,8 @@ func (a *API) MappingUpdate(ctx context.Context, authorID string, oldMapping, ne
 
 			return nil
 		}
+
+		fmt.Println(matchersChanged, remapNames, remapCats)
 
 		// if matchers changed, then to retroactively be all good, we gotta re-map everything
 		if matchersChanged {
@@ -201,16 +238,11 @@ func (a *API) MappingUpdate(ctx context.Context, authorID string, oldMapping, ne
 			return nil
 		}
 
-		// If only a result changed, then like we can just update the already matched transactions and be good with it data against the res
 		if remapNames {
-			if err := s.TransMapsUpdateLinkedNames(ctx, newMapping.ID, newMapping.ResName); err != nil {
-				return err
-			}
+			return remapNameOrCat(ctx, s, true, authorID, oldMapping, newMapping)
 		}
 		if remapCats {
-			if err := s.TransMapsUpdateLinkedNames(ctx, newMapping.ID, newMapping.ResCategoryID); err != nil {
-				return err
-			}
+			return remapNameOrCat(ctx, s, false, authorID, oldMapping, newMapping)
 		}
 
 		return nil

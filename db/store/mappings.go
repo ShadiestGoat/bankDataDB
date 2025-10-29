@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"fmt"
 	"regexp"
 
 	"github.com/jackc/pgx/v5"

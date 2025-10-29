@@ -16,6 +16,8 @@ type Store interface {
 	ExtDelCategory(ctx context.Context, authorID string, iD string) (int64, error)
 	ExtGetCategories(ctx context.Context, authorID string) ([]*ExtGetCategoriesRow, error)
 	TransMapsCleanAll(ctx context.Context, mappingID string) error
+	TransMapsCleanCategories(ctx context.Context, mappingID string) error
+	TransMapsCleanNames(ctx context.Context, mappingID string) error
 	TransMapsOrphanAll(ctx context.Context, mappingID string) error
 	TransMapsOrphanCategories(ctx context.Context, mappingID string) error
 	TransMapsOrphanNames(ctx context.Context, mappingID string) error
