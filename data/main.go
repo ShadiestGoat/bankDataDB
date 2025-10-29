@@ -51,10 +51,10 @@ func (m *MarshallableRegexp) TextNil() *string {
 }
 
 type Transactions struct {
-	SettledAt time.Time `json:"settledAt"`
-	AuthedAt time.Time `json:"authedAt"`
-	Desc string `json:"description"`
-	Amount string `json:"amount"`
-	ResolvedName *string `json:"resolvedName,omitempty"`
-	ResolvedCategoryID *string `json:"resolvedCategoryId,omitempty"`
+	SettledAt          time.Time `json:"settledAt"`
+	AuthedAt           time.Time `json:"authedAt"`
+	Desc               string    `json:"description"`
+	Amount             float64   `json:"amount"`
+	ResolvedName       *string   `json:"resolvedName,omitempty"`
+	ResolvedCategoryID *string   `json:"resolvedCategoryId,omitempty"`
 }
