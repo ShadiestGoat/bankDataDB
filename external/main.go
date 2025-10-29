@@ -43,7 +43,7 @@ func Router(api *internal.API, store store.Store) chi.Router {
 
 func logRoute(r chi.Route, indent int) {
 	for m := range r.Handlers {
-		fmt.Println(strings.Repeat(" ", indent * 2) + m, r.Pattern)
+		fmt.Println(strings.Repeat(" ", indent*2)+m, r.Pattern)
 	}
 
 	if r.SubRoutes == nil {
@@ -51,7 +51,7 @@ func logRoute(r chi.Route, indent int) {
 	}
 
 	for _, s := range r.SubRoutes.Routes() {
-		logRoute(s, indent + 1)
+		logRoute(s, indent+1)
 	}
 }
 
@@ -135,6 +135,7 @@ type RouteContextKey int
 
 const (
 	CTX_USER_ID RouteContextKey = iota
+	CTX_MAPPING
 )
 
 type RespPages struct {
@@ -176,8 +177,11 @@ func defHTTPPage(r chi.Router, a *internal.API, allowedCols []string, h func(r *
 			}
 			asc = inp == "true"
 		}
+		if page < 1 {
+			return nil, errors.BadInput
+		}
 
-		data, total, err := h(r, size, page*size, orderBy, asc)
+		data, total, err := h(r, size, (page - 1)*size, orderBy, asc)
 		if err != nil {
 			return nil, err
 		}
@@ -191,8 +195,4 @@ func defHTTPPage(r chi.Router, a *internal.API, allowedCols []string, h func(r *
 
 type RespCreated struct {
 	ID string `json:"id"`
-}
-
-type RespDeleted struct {
-	DidDelete bool `json:"deleted"`
 }

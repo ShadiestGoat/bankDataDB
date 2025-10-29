@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS mappings (
     res_name     TEXT,
     res_category TEXT REFERENCES categories(id),
     -- extra :3
-    priority   INTEGER DEFAULT 0
+    priority   INTEGER DEFAULT 0 NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_mappings_text ON mappings (trans_text);

@@ -91,6 +91,49 @@ func (q *DBStore) GetUserUpdatedAt(ctx context.Context, id string) (time.Time, e
 	return updated_at, err
 }
 
+const mappingDelete = `-- name: MappingDelete :exec
+DELETE FROM mappings WHERE id = $1
+`
+
+func (q *DBStore) MappingDelete(ctx context.Context, id string) error {
+	_, err := q.db.Exec(ctx, mappingDelete, id)
+	return err
+}
+
+const mappingReset = `-- name: MappingReset :exec
+UPDATE mappings SET
+    name = $2,
+    priority = $3,
+    trans_text = $4,
+    trans_amount = $5,
+    res_name = $6,
+    res_category = $7
+WHERE id = $1
+`
+
+type MappingResetParams struct {
+	ID          string   `json:"id"`
+	Name        string   `json:"name"`
+	Priority    int32    `json:"priority"`
+	TransText   *string  `json:"transText"`
+	TransAmount *float64 `json:"transAmount"`
+	ResName     *string  `json:"resName"`
+	ResCategory *string  `json:"resCategory"`
+}
+
+func (q *DBStore) MappingReset(ctx context.Context, arg *MappingResetParams) error {
+	_, err := q.db.Exec(ctx, mappingReset,
+		arg.ID,
+		arg.Name,
+		arg.Priority,
+		arg.TransText,
+		arg.TransAmount,
+		arg.ResName,
+		arg.ResCategory,
+	)
+	return err
+}
+
 const resetCategoryData = `-- name: ResetCategoryData :exec
 UPDATE categories SET name = $2, color = $3, icon = $4 WHERE id = $1
 `

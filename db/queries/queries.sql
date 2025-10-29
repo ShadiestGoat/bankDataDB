@@ -35,3 +35,16 @@ SELECT EXISTS(
             AND
         id = $2
 );
+
+-- name: MappingReset :exec
+UPDATE mappings SET
+    name = $2,
+    priority = $3,
+    trans_text = $4,
+    trans_amount = $5,
+    res_name = $6,
+    res_category = $7
+WHERE id = $1;
+
+-- name: MappingDelete :exec
+DELETE FROM mappings WHERE id = $1;

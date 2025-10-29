@@ -2,7 +2,6 @@ package external
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -39,7 +38,6 @@ func getUserID(r *http.Request) string {
 
 func middlewareAuthUser(a *internal.API, r *http.Request) (*http.Request, error) {
 	t := r.Header.Get("Authorization")
-	fmt.Println("Meow meow??")
 	if t == "" {
 		return nil, errors.NoAuthProvided
 	}

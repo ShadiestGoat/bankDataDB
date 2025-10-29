@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"errors"
+	"regexp"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -23,11 +24,13 @@ type genericDBWithLog[T DBQuerier] struct {
 	log  log.CtxLogger
 }
 
+var regWhitespace = regexp.MustCompile(`\s{2,}`)
+
 func (db *genericDBWithLog[T]) logErr(ctx context.Context, err error, method string, sql string) {
 	if err != nil {
 		db.log(ctx).Errorw(
 			"Error when doing "+method,
-			"sql", sql,
+			"sql", regWhitespace.ReplaceAllString(sql, " "),
 			"error", err,
 		)
 	}
@@ -129,7 +132,7 @@ type tx struct {
 
 // Commit implements pgx.Tx.
 func (t *tx) Commit(ctx context.Context) error {
-	err := t.Commit(ctx)
+	err := t.conn.Commit(ctx)
 	if err != nil {
 		t.log(ctx).Errorw("Error while doing commit in tx", "error", err)
 	}

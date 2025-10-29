@@ -22,3 +22,8 @@ sql:
             go_type: time.Time
           - db_type: money
             go_type: float64
+          - db_type: money
+            go_type:
+              pointer: true
+              type: float64
+            nullable: true

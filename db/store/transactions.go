@@ -12,7 +12,7 @@ import (
 )
 
 func (s *DBStore) InsertCheckpoint(batch *pgx.Batch, date time.Time, amt float64) {
-	batch.Queue(`INSERT INTO checkpoints (created_at, amount) VALUES ($1, $2) ON CONFLICT DO UPDATE SET amount = $2`, date, amt)
+	batch.Queue(`INSERT INTO checkpoints (created_at, amount) VALUES ($1, $2) ON CONFLICT (created_at) DO UPDATE SET amount = $2`, date, amt)
 }
 
 type TransactionBatch struct {
@@ -53,15 +53,14 @@ func (s *DBStore) GetTransactions(ctx context.Context, authorID string, amount, 
 	rows, err := s.db.Query(
 		ctx,
 		fmt.Sprintf(`
-			SELECT
-				settled_at, authed_at, description, amount, resolved_name, resolved_category
+			SELECT settled_at, authed_at, description, amount, resolved_name, resolved_category
 			FROM transactions
 			WHERE author_id = $1
 			ORDER BY %s %s
-			LIMIT $3
-			OFFSET $4
+			LIMIT $2
+			OFFSET $3
 		`, orderColumn, db.AscKey(asc)),
-		authorID, orderColumn, amount, offset,
+		authorID, amount, offset,
 	)
 	if err != nil {
 		return nil, err

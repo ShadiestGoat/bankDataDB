@@ -9,34 +9,84 @@ import (
 	"context"
 )
 
-const transMapsRmCategories = `-- name: TransMapsRmCategories :exec
+const transMapsCleanAll = `-- name: TransMapsCleanAll :exec
 WITH deleted AS (
     DELETE FROM mapped_transactions
     WHERE mapping_id = $1
-    RETURNING trans_id
+    RETURNING trans_id, updated_name
+), names AS (
+    UPDATE transactions
+    SET resolved_name = NULL
+    FROM deleted
+    WHERE id = deleted.trans_id AND updated_name IS TRUE
 ) UPDATE transactions
 SET resolved_category = NULL
 FROM deleted
-WHERE id = deleted.trans_id
+WHERE id = deleted.trans_id AND updated_name IS FALSE
 `
 
-func (q *DBStore) TransMapsRmCategories(ctx context.Context, mappingID string) error {
-	_, err := q.db.Exec(ctx, transMapsRmCategories, mappingID)
+func (q *DBStore) TransMapsCleanAll(ctx context.Context, mappingID string) error {
+	_, err := q.db.Exec(ctx, transMapsCleanAll, mappingID)
 	return err
 }
 
-const transMapsRmNames = `-- name: TransMapsRmNames :exec
-WITH deleted AS (
-    DELETE FROM mapped_transactions
-    WHERE mapping_id = $1
-    RETURNING trans_id
-) UPDATE transactions
-SET resolved_name = NULL
-FROM deleted
-WHERE id = deleted.trans_id
+const transMapsOrphanAll = `-- name: TransMapsOrphanAll :exec
+DELETE FROM mapped_transactions WHERE mapping_id = $1
 `
 
-func (q *DBStore) TransMapsRmNames(ctx context.Context, mappingID string) error {
-	_, err := q.db.Exec(ctx, transMapsRmNames, mappingID)
+func (q *DBStore) TransMapsOrphanAll(ctx context.Context, mappingID string) error {
+	_, err := q.db.Exec(ctx, transMapsOrphanAll, mappingID)
+	return err
+}
+
+const transMapsOrphanCategories = `-- name: TransMapsOrphanCategories :exec
+DELETE FROM mapped_transactions WHERE mapping_id = $1 AND updated_name IS FALSE
+`
+
+func (q *DBStore) TransMapsOrphanCategories(ctx context.Context, mappingID string) error {
+	_, err := q.db.Exec(ctx, transMapsOrphanCategories, mappingID)
+	return err
+}
+
+const transMapsOrphanNames = `-- name: TransMapsOrphanNames :exec
+DELETE FROM mapped_transactions WHERE mapping_id = $1 AND updated_name IS TRUE
+`
+
+func (q *DBStore) TransMapsOrphanNames(ctx context.Context, mappingID string) error {
+	_, err := q.db.Exec(ctx, transMapsOrphanNames, mappingID)
+	return err
+}
+
+const transMapsUpdateLinkedCategories = `-- name: TransMapsUpdateLinkedCategories :exec
+UPDATE transactions AS t
+SET resolved_category = $2
+FROM mapped_transactions AS mp
+WHERE
+    mp.mapping_id = $1
+        AND
+    t.id = mp.trans_id
+        AND
+    updated_name IS FALSE
+`
+
+func (q *DBStore) TransMapsUpdateLinkedCategories(ctx context.Context, mappingID string, resolvedCategory *string) error {
+	_, err := q.db.Exec(ctx, transMapsUpdateLinkedCategories, mappingID, resolvedCategory)
+	return err
+}
+
+const transMapsUpdateLinkedNames = `-- name: TransMapsUpdateLinkedNames :exec
+UPDATE transactions AS t
+SET resolved_name = $2
+FROM mapped_transactions AS mp
+WHERE
+    mp.mapping_id = $1
+        AND
+    t.id = mp.trans_id
+        AND
+    updated_name IS TRUE
+`
+
+func (q *DBStore) TransMapsUpdateLinkedNames(ctx context.Context, mappingID string, resolvedName *string) error {
+	_, err := q.db.Exec(ctx, transMapsUpdateLinkedNames, mappingID, resolvedName)
 	return err
 }
